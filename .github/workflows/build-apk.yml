@@ -39,8 +39,8 @@
      "run": "npx cap init \"Green Fill Public School\" com.greenfill.school --web-dir www\nnpx cap add android\n"
     },
     {
-     "name": "Make the app icon from the school logo",
-     "run": "mkdir -p assets\nnpm install sharp\nnode -e \"require('sharp')('icon-512.png').resize(1024,1024).toFile('assets/icon-only.png').then(function(){console.log('icon ready')})\"\nnpx capacitor-assets generate --android --iconBackgroundColor '#ffffff' --iconBackgroundColorDark '#ffffff'"
+     "name": "Put the school logo in as the app icon",
+     "run": "npm install sharp\ncat > make-icons.js <<'ICONEOF'\nconst sharp = require('sharp');\nconst fs = require('fs');\nconst sizes = { mdpi: 48, hdpi: 72, xhdpi: 96, xxhdpi: 144, xxxhdpi: 192 };\n(async () => {\n  for (const d of Object.keys(sizes)) {\n    const s = sizes[d];\n    const dir = 'android/app/src/main/res/mipmap-' + d;\n    fs.mkdirSync(dir, { recursive: true });\n    await sharp('icon-512.png').resize(s, s).png().toFile(dir + '/ic_launcher.png');\n    const mask = Buffer.from('<svg width=\"' + s + '\" height=\"' + s + '\"><circle cx=\"' + (s/2) + '\" cy=\"' + (s/2) + '\" r=\"' + (s/2) + '\"/></svg>');\n    await sharp('icon-512.png').resize(s, s).composite([{ input: mask, blend: 'dest-in' }]).png().toFile(dir + '/ic_launcher_round.png');\n    console.log('icons written for ' + d);\n  }\n})().catch(function (e) { console.error(e); process.exit(1); });\nICONEOF\nnode make-icons.js\nrm -f android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml\nls -la android/app/src/main/res/mipmap-xxxhdpi"
     },
     {
      "name": "Copy the website into the app",
