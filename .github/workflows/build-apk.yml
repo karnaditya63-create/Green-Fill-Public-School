@@ -1,62 +1,65 @@
-name: Build Android APK
-
-# Run it by hand: repository -> Actions tab -> "Build Android APK" -> Run workflow
-on:
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get the repository files
-        uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-
-      - name: Put the website files in the app folder
-        run: |
-          mkdir -p www
-          cp index.html www/
-          cp manifest.json www/ || true
-          cp service-worker.js www/ || true
-          cp icon-*.png www/ || true
-
-      - name: Install Capacitor
-        run: |
-          npm init -y
-          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/assets@3
-
-      - name: Create the Android project
-        run: |
-          npx cap init "Green Fill Public School" com.greenfill.school --web-dir www
-          npx cap add android
-
-      - name: Make the app icon from the school logo
-        run: |
-          mkdir -p assets
-          convert icon-512.png -resize 1024x1024 assets/icon-only.png
-          npx capacitor-assets generate --android --iconBackgroundColor '#ffffff' --iconBackgroundColorDark '#ffffff'
-
-      - name: Copy the website into the app
-        run: npx cap sync android
-
-      - name: Build the APK
-        working-directory: android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug
-
-      - name: Save the APK so you can download it
-        uses: actions/upload-artifact@v4
-        with:
-          name: Green-Fill-School-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+{
+ "name": "Build Android APK",
+ "on": {
+  "workflow_dispatch": {}
+ },
+ "jobs": {
+  "build": {
+   "runs-on": "ubuntu-latest",
+   "steps": [
+    {
+     "name": "Get the repository files",
+     "uses": "actions/checkout@v4"
+    },
+    {
+     "name": "Set up Node",
+     "uses": "actions/setup-node@v4",
+     "with": {
+      "node-version": 20
+     }
+    },
+    {
+     "name": "Set up Java",
+     "uses": "actions/setup-java@v4",
+     "with": {
+      "distribution": "temurin",
+      "java-version": 17
+     }
+    },
+    {
+     "name": "Put the website files in the app folder",
+     "run": "mkdir -p www\ncp index.html www/\ncp manifest.json www/ || true\ncp service-worker.js www/ || true\ncp icon-*.png www/ || true\n"
+    },
+    {
+     "name": "Install Capacitor",
+     "run": "npm init -y\nnpm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/assets@3\n"
+    },
+    {
+     "name": "Create the Android project",
+     "run": "npx cap init \"Green Fill Public School\" com.greenfill.school --web-dir www\nnpx cap add android\n"
+    },
+    {
+     "name": "Make the app icon from the school logo",
+     "run": "mkdir -p assets\nnpm install sharp\nnode -e \"require('sharp')('icon-512.png').resize(1024,1024).toFile('assets/icon-only.png').then(function(){console.log('icon ready')})\"\nnpx capacitor-assets generate --android --iconBackgroundColor '#ffffff' --iconBackgroundColorDark '#ffffff'"
+    },
+    {
+     "name": "Copy the website into the app",
+     "run": "npx cap sync android"
+    },
+    {
+     "name": "Build the APK",
+     "working-directory": "android",
+     "run": "chmod +x gradlew\n./gradlew assembleDebug\n"
+    },
+    {
+     "name": "Save the APK so you can download it",
+     "uses": "actions/upload-artifact@v4",
+     "with": {
+      "name": "Green-Fill-School-APK",
+      "path": "android/app/build/outputs/apk/debug/app-debug.apk"
+     }
+    }
+   ]
+  }
+ }
+}
